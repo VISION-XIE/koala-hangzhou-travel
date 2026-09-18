@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root {
     --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd; --sky-300:#7dd3fc;
@@ -289,6 +290,36 @@
     .day-pill{padding:4px 9px;font-size:11px}
   }
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+  /* ===== 导出攻略样式 ===== */
+  .guide{font-family:'Quicksand','PingFang SC',sans-serif;background:#fff;color:#1e293b;max-width:760px;margin:0 auto;padding:40px 48px;line-height:1.7}
+  .guide h1{font-family:'ZCOOL KuaiLe',sans-serif;font-size:34px;color:#0284c7;text-align:center;margin:0 0 4px}
+  .guide .g-sub{text-align:center;color:#64748b;font-size:14px;margin-bottom:24px}
+  .guide .g-cover{background:linear-gradient(135deg,#e0f2fe 0%,#fce7f3 100%);border-radius:20px;padding:32px;text-align:center;margin-bottom:28px}
+  .guide .g-cover .koala{font-size:56px;animation:none}
+  .guide .g-day{margin-bottom:28px;page-break-inside:avoid}
+  .guide .g-day-title{font-family:'ZCOOL KuaiLe',sans-serif;font-size:22px;padding:10px 18px;border-radius:14px;color:#fff;display:inline-block;margin-bottom:14px}
+  .guide .g-spot{background:#f8fafc;border-left:4px solid #38bdf8;border-radius:12px;padding:14px 18px;margin-bottom:12px;page-break-inside:avoid}
+  .guide .g-spot-name{font-weight:700;font-size:16px;color:#0f172a}
+  .guide .g-spot-meta{font-size:12px;color:#64748b;margin-top:4px;display:flex;flex-wrap:wrap;gap:8px}
+  .guide .g-spot-meta span{background:#e0f2fe;padding:2px 8px;border-radius:6px}
+  .guide .g-notes{font-size:13px;color:#475569;margin-top:6px;font-style:italic}
+  .guide .g-section{margin-top:28px;page-break-inside:avoid}
+  .guide .g-section h2{font-family:'ZCOOL KuaiLe',sans-serif;font-size:20px;color:#0284c7;border-bottom:2px dashed #bae6fd;padding-bottom:6px;margin-bottom:12px}
+  .guide .g-item{background:#f8fafc;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .guide .g-item .g-emoji{font-size:20px}
+  .guide .g-food-stars{color:#f59e0b}
+  .guide .g-pill{display:inline-block;background:#e0f2fe;border-radius:20px;padding:2px 10px;font-size:12px;margin:2px;color:#0284c7}
+  .guide .g-empty{color:#94a3b8;font-size:13px;font-style:italic}
+  .guide .g-footer{text-align:center;margin-top:36px;padding-top:16px;border-top:1px dashed #cbd5e1;color:#94a3b8;font-size:12px}
+
+  /* 打印 PDF：只显示攻略 */
+  @media print{
+    body *{visibility:hidden}
+    #printArea,#printArea *{visibility:visible}
+    #printArea{display:block!important;position:absolute;left:0;top:0;width:100%}
+    @page{size:A4;margin:12mm}
+  }
 </style>
 </head>
 <body>
@@ -311,6 +342,10 @@
     </div>
     <div class="top-actions">
       <span class="stat-chip" id="countChip">📍 0</span>
+      <button class="btn ghost" id="exportBtn" title="导出旅游攻略">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        导出攻略
+      </button>
       <button class="btn ghost" id="resetBtn" title="清空景点">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         清空
@@ -449,6 +484,25 @@
     <div class="modal-footer"><button class="btn ghost" id="foodCancel">取消</button><button class="btn" id="foodSave" style="background:linear-gradient(135deg,var(--pink-300),var(--pink-500))">保存</button></div>
   </div>
 </div>
+
+<!-- 导出选择弹窗 -->
+<div class="modal-backdrop" id="exportBackdrop">
+  <div class="modal-card" style="max-width:360px">
+    <h3 style="margin:0 0 6px;font-family:var(--cute)">导出旅游攻略</h3>
+    <p style="margin:0 0 16px;color:var(--muted);font-size:13px">选择导出格式，生成精美图文版杭州漫游攻略 📖</p>
+    <button class="btn add" id="exportPdfBtn" style="width:100%;margin-bottom:10px;justify-content:center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      导出为 PDF
+    </button>
+    <button class="btn ghost" id="exportPngBtn" style="width:100%;justify-content:center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      导出为 PNG 长图
+    </button>
+  </div>
+</div>
+
+<!-- 打印容器（屏幕上隐藏，打印/PDF时显示） -->
+<div id="printArea" style="display:none"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -892,6 +946,79 @@ async function loadWeather(){
   catch(e){TRIP_DATES.forEach((_,i)=>renderWx(i+1,FALLBACK[i]))}
 }
 function renderWx(n,w){const i=wmoInfo(w.code);document.getElementById('wxIcon'+n).innerHTML=weatherSvg(i.icon);document.getElementById('wxDesc'+n).textContent=i.desc;document.getElementById('wxTemp'+n).innerHTML=`${w.tmax}°/<span class="lo">${w.tmin}°</span>`;document.getElementById('wxRain'+n).textContent=`💧${w.precip}%`}
+
+/* ==================== 导出旅游攻略 ==================== */
+const DAY_COLORS={1:'#0ea5e9',2:'#ec4899',3:'#f59e0b'};
+const TP_LABEL={morning:'🌅 早上',noon:'☀️ 中午',evening:'🌙 晚上'};
+function buildGuideHTML(){
+  const spots=loadSpots();
+  const foods=getFoods();
+  const wishes=getWishes();
+  const packing=getPacking();
+  let h=`<div class="guide">`;
+  h+=`<div class="g-cover"><div class="koala">🐨</div><h1>Koala 杭州漫游攻略</h1><div class="g-sub">9.25 - 9.27 · 杭州 · 软萌版旅行手账</div></div>`;
+  // 每日行程
+  DAYS.filter(d=>d.day>0).forEach(d=>{
+    const daySpots=spots.filter(s=>s.day===d.day||s.day===0).sort((a,b)=>(a.order||0)-(b.order||0));
+    h+=`<div class="g-day"><div class="g-day-title" style="background:${d.color}">Day ${d.day} · ${d.date} ${d.label.replace('Day '+d.day,'')}</div>`;
+    if(!daySpots.length){h+=`<div class="g-empty">这天还没安排景点哦～</div>`}
+    else{
+      ['morning','noon','evening'].forEach(tp=>{
+        const tpSpots=daySpots.filter(s=>(s.timePeriod||'noon')===tp);
+        if(!tpSpots.length)return;
+        h+=`<div style="font-weight:600;color:${d.color};margin:10px 0 6px">${TP_LABEL[tp]}</div>`;
+        tpSpots.forEach(s=>{
+          let meta=[];
+          if(s.duration)meta.push(`⏱ ${s.duration} 分钟`);
+          if(s.transport)meta.push(`🚇 ${s.transport}`);
+          h+=`<div class="g-spot" style="border-left-color:${d.color}"><div class="g-spot-name">${s.emoji||'📍'} ${escapeHtml(s.name)}</div>`;
+          if(meta.length)h+=`<div class="g-spot-meta">${meta.map(m=>`<span>${m}</span>`).join('')}</div>`;
+          if(s.notes)h+=`<div class="g-notes">📝 ${escapeHtml(s.notes)}</div>`;
+          h+=`</div>`;
+        });
+      });
+    }
+    h+=`</div>`;
+  });
+  // 美食
+  h+=`<div class="g-section"><h2>🍜 美食打卡</h2>`;
+  if(!foods.length)h+=`<div class="g-empty">还没记录美食～</div>`;
+  else foods.forEach(f=>{
+    const stars='⭐'.repeat(f.rating||0);
+    h+=`<div class="g-item"><span class="g-emoji">${f.mood||'🍴'}</span><div style="flex:1"><div style="font-weight:600">${escapeHtml(f.name)} <span class="g-food-stars">${stars}</span></div><div style="font-size:12px;color:#64748b">必点：${escapeHtml(f.mustTry||'-')}${f.avgPrice?` · ¥${f.avgPrice}/人`:''}${f.queue?` · ${f.queue}`:''}</div></div></div>`;
+  });
+  h+=`</div>`;
+  // 心愿
+  if(wishes.length){h+=`<div class="g-section"><h2>💝 心愿清单</h2>`;wishes.forEach(w=>{h+=`<div class="g-item"><span class="g-emoji">${w.checked?'✅':'☐'}</span><span>${escapeHtml(w.text)}</span></div>`});h+=`</div>`}
+  // 行李
+  const checked=packing.filter(p=>p.checked);
+  if(checked.length){h+=`<div class="g-section"><h2>🧳 行李清单（已勾 ${checked.length} 件）</h2>`;const cats=[...new Set(checked.map(p=>p.cat))];cats.forEach(c=>{const items=checked.filter(p=>p.cat===c);h+=`<div style="margin:6px 0"><strong style="color:#0284c7">${c}</strong>：${items.map(i=>escapeHtml(i.text)).join('、')}</div>`});h+=`</div>`}
+  h+=`<div class="g-footer">🐨 Koala 杭州漫游地图 · 生成于 ${new Date().toLocaleDateString('zh-CN')}</div>`;
+  h+=`</div>`;
+  return h;
+}
+function openExportModal(){document.getElementById('exportBackdrop').classList.add('show')}
+document.getElementById('exportBackdrop').addEventListener('click',e=>{if(e.target.id==='exportBackdrop')e.currentTarget.classList.remove('show')});
+document.getElementById('exportBtn').onclick=openExportModal;
+document.getElementById('exportPdfBtn').onclick=()=>{
+  document.getElementById('printArea').innerHTML=buildGuideHTML();
+  document.getElementById('exportBackdrop').classList.remove('show');
+  setTimeout(()=>window.print(),300);
+};
+document.getElementById('exportPngBtn').onclick=async()=>{
+  const area=document.getElementById('printArea');
+  area.innerHTML=buildGuideHTML();
+  area.style.display='block';
+  area.style.position='absolute';area.style.left='-9999px';area.style.top='0';
+  document.getElementById('exportBackdrop').classList.remove('show');
+  await new Promise(r=>setTimeout(r,200));
+  const canvas=await html2canvas(area.querySelector('.guide'),{backgroundColor:'#ffffff',scale:2,useCORS:true});
+  area.style.display='none';
+  const link=document.createElement('a');
+  link.download='Koala杭州漫游攻略.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+};
 
 /* ==================== 启动 ==================== */
 (async function(){
