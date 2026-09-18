@@ -1,0 +1,16 @@
+{
+  "name": "koala-hangzhou-travel",
+  "version": "1.0.0",
+  "description": "Koala杭州漫游地图 - 双人旅行攻略",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
