@@ -4,12 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Koala杭州漫游地图 · 软萌攻略</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="vendor/leaflet.css" />
+<script src="vendor/marked.min.js"></script>
 <style>
   :root {
     --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd; --sky-300:#7dd3fc;
@@ -566,7 +562,7 @@
 <!-- 打印容器（屏幕上隐藏，打印/PDF时显示） -->
 <div id="printArea" style="display:none"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vendor/leaflet.js"></script>
 <script>
 /* ==================== 数据常量 ==================== */
 const HANGZHOU_CENTER = [30.2741, 120.1551];
@@ -1246,6 +1242,7 @@ document.getElementById('exportPngBtn').onclick=async()=>{
   area.style.position='absolute';area.style.left='-9999px';area.style.top='0';
   document.getElementById('exportBackdrop').classList.remove('show');
   await new Promise(r=>setTimeout(r,200));
+  if(typeof html2canvas==='undefined'){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='vendor/html2canvas.min.js';s.onload=res;s.onerror=()=>rej(new Error('html2canvas load failed'));document.head.appendChild(s)})}
   const canvas=await html2canvas(area.querySelector('.guide'),{backgroundColor:'#ffffff',scale:2,useCORS:true});
   area.style.display='none';
   const link=document.createElement('a');
