@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   :root {
     --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd; --sky-300:#7dd3fc;
@@ -143,8 +144,33 @@
   .popup-head .day-tag{font-size:10px;font-weight:700;background:rgba(255,255,255,.3);padding:2px 8px;border-radius:999px}
   .popup-body{padding:12px 14px}
   .popup-body .label{font-size:10px;font-weight:700;color:var(--sky-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
-  .popup-body .notes{font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:80px;overflow-y:auto}
+  .popup-body .notes{font-size:13px;line-height:1.6;word-break:break-word;max-height:120px;overflow-y:auto}
   .popup-body .notes.empty{color:var(--muted);font-style:italic}
+  .md-content h1,.md-content h2,.md-content h3{font-size:15px;margin:6px 0 4px;color:var(--sky-700)}
+  .md-content p{margin:4px 0}
+  .md-content ul,.md-content ol{margin:4px 0;padding-left:20px}
+  .md-content li{margin:2px 0}
+  .md-content img{max-width:100%;border-radius:8px;margin:4px 0;cursor:zoom-in}
+  .md-content code{background:var(--sky-100);padding:1px 4px;border-radius:4px;font-size:12px}
+  .md-content blockquote{border-left:3px solid var(--sky-300);padding-left:8px;margin:4px 0;color:var(--muted)}
+  .md-content strong{color:var(--sky-700)}
+  .md-content a{color:var(--sky-500)}
+  /* Markdown 编辑器工具栏 */
+  .md-toolbar{display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+  .md-toolbar button{padding:3px 8px;font-size:12px;border-radius:6px;background:var(--sky-100);color:var(--sky-600);border:1px solid var(--sky-200);cursor:pointer;transition:all .15s}
+  .md-toolbar button:hover{background:var(--sky-200)}
+  .md-toolbar .sep{width:1px;height:16px;background:var(--sky-200)}
+  .md-preview{border:1px solid var(--sky-200);border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.6;min-height:60px;max-height:120px;overflow-y:auto;background:var(--sky-50)}
+  .md-preview img{max-width:100%;border-radius:8px}
+  /* 时间轴卡片里的 Markdown */
+  .tl-spot-notes{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;max-height:60px;overflow-y:auto}
+  .tl-spot-notes img{max-width:100%;border-radius:6px}
+  /* 导出攻略里的 Markdown */
+  .guide .g-notes{font-size:13px;color:#475569;margin-top:6px;line-height:1.6}
+  .guide .g-notes img{max-width:100%;border-radius:8px;margin:4px 0}
+  .guide .g-notes h1,.guide .g-notes h2,.guide .g-notes h3{font-size:15px;margin:6px 0}
+  .guide .g-notes ul,.guide .g-notes ol{padding-left:20px;margin:4px 0}
+  .guide .g-notes strong{color:#0284c7}
   .popup-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dashed var(--sky-200);flex-wrap:wrap;gap:4px}
   .popup-meta .transport{background:var(--sky-50);padding:2px 6px;border-radius:8px;color:var(--sky-600);font-weight:600}
   .popup-actions{display:flex;gap:6px;padding:0 14px 12px}
@@ -461,7 +487,21 @@
         <div class="field"><label>交通方式</label><input type="text" id="spotTransport" placeholder="地铁/步行/打车" /></div>
       </div>
       <div class="field"><label>选个图标</label><div class="emoji-picker" id="emojiPicker"></div></div>
-      <div class="field"><label>备注</label><textarea id="spotNotes" placeholder="写点攻略小记～" maxlength="500"></textarea></div>
+      <div class="field"><label>备注 <span style="font-size:11px;color:var(--muted);font-weight:400">支持 Markdown & 图片</span></label>
+        <div class="md-toolbar">
+          <button type="button" data-md="bold" title="加粗"><b>B</b></button>
+          <button type="button" data-md="italic" title="斜体"><i>I</i></button>
+          <button type="button" data-md="h2" title="标题">H2</button>
+          <button type="button" data-md="list" title="列表">• 列表</button>
+          <button type="button" data-md="quote" title="引用">‖ 引用</button>
+          <span class="sep"></span>
+          <button type="button" id="imgUploadBtn" title="上传图片">🖼 图片</button>
+          <button type="button" id="mdPreviewBtn" title="预览">👁 预览</button>
+        </div>
+        <input type="file" id="imgFileInput" accept="image/*" style="display:none">
+        <textarea id="spotNotes" placeholder="写点攻略小记～&#10;支持 **加粗**、列表、引用、图片粘贴"></textarea>
+        <div class="md-preview" id="mdPreview" style="display:none"></div>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn ghost" id="cancelBtn">取消</button><button class="btn" id="saveBtn">保存</button></div>
   </div>
@@ -608,11 +648,103 @@ function popupHtml(spot){
   return `<div class="popup-head" style="background:linear-gradient(135deg,${info.light},${info.color})">
     <span class="emoji">${spot.emoji}</span><span class="name font-cute">${escapeHtml(spot.name)}</span><span class="day-tag">${dayText}</span></div>
     <div class="check-row"><div class="ti-check ${spot.checked?'checked':''}" data-id="${spot.id}"></div><span class="check-label">${spot.checked?'已打卡 ✓':'打卡完成？'}</span></div>
-    <div class="popup-body"><div class="label">攻略备注</div><div class="notes ${ec}">${escapeHtml(notes)}</div>
+    <div class="popup-body"><div class="label">攻略备注</div><div class="notes ${ec}">${renderMarkdown(notes)||escapeHtml(notes)}</div>
     <div class="popup-meta">${dur}${spot.transport?`<span class="transport">🚇 ${escapeHtml(spot.transport)}</span>`:''}<span>📍 ${spot.lat.toFixed(3)},${spot.lng.toFixed(3)}</span></div></div>
     <div class="popup-actions"><button class="btn ghost" data-act="edit" data-id="${spot.id}">编辑</button><button class="btn danger" data-act="del" data-id="${spot.id}">删除</button></div>`;
 }
 function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function renderMarkdown(text){
+  if(!text||!text.trim())return '';
+  try{const html=marked.parse(text,{breaks:true});return `<div class="md-content">${html}</div>`}catch(e){return escapeHtml(text)}
+}
+
+/* ==================== Markdown 编辑器 ==================== */
+const notesTA=document.getElementById('spotNotes');
+const mdPreview=document.getElementById('mdPreview');
+const mdPreviewBtn=document.getElementById('mdPreviewBtn');
+const imgFileInput=document.getElementById('imgFileInput');
+
+// 工具栏按钮
+document.querySelectorAll('.md-toolbar [data-md]').forEach(btn=>{
+  btn.onclick=()=>{
+    const type=btn.dataset.md;
+    const start=notesTA.selectionStart,end=notesTA.selectionEnd;
+    const sel=notesTA.value.substring(start,end)||'';
+    let wrap='';
+    if(type==='bold')wrap=`**${sel||'加粗'}**`;
+    else if(type==='italic')wrap=`*${sel||'斜体'}*`;
+    else if(type==='h2')wrap=`\n## ${sel||'标题'}\n`;
+    else if(type==='list')wrap=`\n- ${sel||'列表项'}\n`;
+    else if(type==='quote')wrap=`\n> ${sel||'引用'}\n`;
+    notesTA.value=notesTA.value.substring(0,start)+wrap+notesTA.value.substring(end);
+    notesTA.focus();notesTA.setSelectionRange(start+wrap.length,start+wrap.length);
+  };
+});
+
+// 预览切换
+let mdPreviewOn=false;
+mdPreviewBtn.onclick=()=>{
+  mdPreviewOn=!mdPreviewOn;
+  if(mdPreviewOn){
+    mdPreview.innerHTML=renderMarkdown(notesTA.value);
+    mdPreview.style.display='block';notesTA.style.display='none';
+    mdPreviewBtn.innerHTML='✏️ 编辑';
+  }else{
+    mdPreview.style.display='none';notesTA.style.display='';
+    mdPreviewBtn.innerHTML='👁 预览';
+  }
+};
+
+// 图片压缩
+function compressImage(file,maxW=800,quality=0.7){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        let{width,height}=img;
+        if(width>maxW){height=height*maxW/width;width=maxW}
+        canvas.width=width;canvas.height=height;
+        canvas.getContext('2d').drawImage(img,0,0,width,height);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=reject;img.src=e.target.result;
+    };
+    reader.onerror=reject;reader.readAsDataURL(file);
+  });
+}
+
+// 插入图片到 textarea
+function insertImage(dataUrl){
+  const md=`\n![图片](${dataUrl})\n`;
+  const pos=notesTA.selectionStart||notesTA.value.length;
+  notesTA.value=notesTA.value.substring(0,pos)+md+notesTA.value.substring(pos);
+  notesTA.dispatchEvent(new Event('input'));
+  if(mdPreviewOn)mdPreview.innerHTML=renderMarkdown(notesTA.value);
+}
+
+// 文件上传
+document.getElementById('imgUploadBtn').onclick=()=>imgFileInput.click();
+imgFileInput.onchange=async()=>{
+  const file=imgFileInput.files[0];if(!file)return;
+  try{const dataUrl=await compressImage(file);insertImage(dataUrl)}
+  catch(e){alert('图片处理失败')}
+  imgFileInput.value='';
+};
+
+// 粘贴图片
+notesTA.addEventListener('paste',async(e)=>{
+  const items=e.clipboardData?.items;if(!items)return;
+  for(const item of items){
+    if(item.type.startsWith('image/')){
+      e.preventDefault();
+      const file=item.getAsFile();if(!file)continue;
+      try{const dataUrl=await compressImage(file);insertImage(dataUrl)}catch{}
+      break;
+    }
+  }
+});
 
 function renderAll(){
   Object.values(markers).forEach(m=>map.removeLayer(m));
@@ -765,6 +897,8 @@ function buildTimeSelector(){timeSelector.querySelectorAll('.time-opt').forEach(
 function openModal(preName){
   document.getElementById('modalTitle').textContent=editingId?'编辑景点':'添加景点';
   nameInput.value=preName||'';notesInput.value='';durInput.value='';transInput.value='';
+  // 重置 Markdown 预览
+  if(mdPreviewOn){mdPreviewOn=false;mdPreview.style.display='none';notesTA.style.display='';mdPreviewBtn.innerHTML='👁 预览'}
   selectedEmoji=EMOJIS[0];selectedDay=1;selectedTime='noon';
   if(editingId){const s=loadSpots().find(x=>x.id===editingId);if(s){nameInput.value=s.name;notesInput.value=s.notes||'';durInput.value=s.duration||'';transInput.value=s.transport||'';selectedEmoji=s.emoji;selectedDay=s.day;selectedTime=s.timePeriod||'noon';pendingLatLng=L.latLng(s.lat,s.lng)}}
   buildEmojiPicker();buildDaySelector();buildTimeSelector();
@@ -808,7 +942,8 @@ function renderTimeline(){
         html+=`<div class="timeline-item ${s.checked?'checked':''}" data-id="${s.id}">
           <div class="ti-check ${s.checked?'checked':''}" data-id="${s.id}"></div>
           <div class="ti-info"><div class="ti-name">${s.emoji} ${escapeHtml(s.name)}${unassignedTag}</div>
-          <div class="ti-meta">${s.duration?`<span class="dur">⏱ ${s.duration}分钟</span>`:''}${s.transport?`<span class="trans">🚇 ${escapeHtml(s.transport)}</span>`:''}</div></div></div>`;
+          <div class="ti-meta">${s.duration?`<span class="dur">⏱ ${s.duration}分钟</span>`:''}${s.transport?`<span class="trans">🚇 ${escapeHtml(s.transport)}</span>`:''}</div>
+          ${s.notes?`<div class="tl-spot-notes">${renderMarkdown(s.notes)}</div>`:''}</div></div>`;
       });
       html+=`</div>`;
     });
@@ -978,7 +1113,7 @@ function buildGuideHTML(){
           if(s.transport)meta.push(`🚇 ${s.transport}`);
           h+=`<div class="g-spot" style="border-left-color:${d.color}"><div class="g-spot-name">${s.emoji||'📍'} ${escapeHtml(s.name)}</div>`;
           if(meta.length)h+=`<div class="g-spot-meta">${meta.map(m=>`<span>${m}</span>`).join('')}</div>`;
-          if(s.notes)h+=`<div class="g-notes">📝 ${escapeHtml(s.notes)}</div>`;
+          if(s.notes)h+=`<div class="g-notes">📝 ${renderMarkdown(s.notes)}</div>`;
           h+=`</div>`;
         });
       });
