@@ -1,6 +1,11 @@
 const AMAP_KEY = process.env.AMAP_KEY || '0fc7e137dda9667f43d6540cbb0a10e4';
 
 module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   const { keywords } = req.query;
   if (!keywords) return res.status(400).json({ error: 'keywords required' });
   try {
