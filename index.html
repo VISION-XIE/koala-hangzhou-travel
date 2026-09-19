@@ -1124,38 +1124,57 @@ const DAY_COLORS={1:'#0ea5e9',2:'#ec4899',3:'#f59e0b'};
 const TP_LABEL={morning:'🌅 上午',noon:'☀️ 下午',evening:'🌙 晚上'};
 function buildMiniMap(spots){
   if(!spots||!spots.length)return '';
-  const pad=40;const W=520,H=320;
+  const W=560,H=410,t=48,b=36;
   const lats=spots.map(s=>s.lat),lngs=spots.map(s=>s.lng);
-  let minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
-  let minLat=Math.min(...lats),maxLat=Math.max(...lats);
-  const dLng=Math.max(maxLng-minLng,0.01),dLat=Math.max(maxLat-minLat,0.01);
-  // 保持比例
-  const scale=Math.min((W-pad*2)/dLng,(H-pad*2)/dLat*0.8);
-  const ox=pad+(W-pad*2-dLng*scale)/2;
-  const oy=pad+(H-pad*2-dLat*scale*0.8)/2;
-  const project=(lat,lng)=>[ox+(lng-minLng)*scale,oy+H-pad*2-(lat-minLat)*scale*0.8];
-  let svg=`<div style="text-align:center;margin:12px 0 16px"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="max-width:100%;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08)">`;
-  svg+=`<rect width="${W}" height="${H}" fill="#e0f2fe" rx="14"/>`;
-  // 装饰：西湖大致位置
-  svg+=`<ellipse cx="${(W/2).toFixed(0)}" cy="${(H/2+10).toFixed(0)}" rx="30" ry="18" fill="#7dd3fc" opacity=".3"/>`;
-  // 路线连线（按天）
+  const minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
+  const minLat=Math.min(...lats),maxLat=Math.max(...lats);
+  const dLng=Math.max(maxLng-minLng,0.02),dLat=Math.max(maxLat-minLat,0.02);
+  const mw=W-80,mh=H-t-b;
+  const scale=Math.min(mw/dLng,mh/dLat);
+  const ox=40+(mw-dLng*scale)/2;
+  const oy=t+(mh-dLat*scale)/2;
+  const px=lng=>ox+(lng-minLng)*scale;
+  const py=lat=>oy+(maxLat-lat)*scale;
+
+  let svg=`<div style="text-align:center;margin:14px 0 18px"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="max-width:100%;border-radius:18px;filter:drop-shadow(0 6px 16px rgba(14,165,233,.18))">`;
+  svg+=`<defs>
+    <linearGradient id="mmbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#edf8ff"/><stop offset="1" stop-color="#d7eefb"/></linearGradient>
+    <filter id="mmsh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="#0369a1" flood-opacity=".22"/></filter>
+  </defs>`;
+  svg+=`<rect width="${W}" height="${H}" fill="url(#mmbg)" rx="18"/>`;
+  // 标题
+  svg+=`<text x="${W/2}" y="${t-18}" text-anchor="middle" font-size="17" font-weight="700" fill="#075985">📍 行程总览</text>`;
+  // 西湖装饰（用数据范围中心附近示意水域）
+  const cx=px((minLng+maxLng)/2),cy=py((minLat+maxLat)/2),cr=Math.min(dLng*scale,dLat*scale)*0.14;
+  svg+=`<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${Math.max(cr,18).toFixed(0)}" ry="${(Math.max(cr,18)*0.62).toFixed(0)}" fill="#7dd3fc" opacity=".28"/>`;
+  svg+=`<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${(Math.max(cr,18)*0.55).toFixed(0)}" ry="${(Math.max(cr,18)*0.34).toFixed(0)}" fill="#a5dffd" opacity=".35"/>`;
+  // 路线连线（按天，带柔和描边）
   [1,2,3].forEach(day=>{
     const ds=spots.filter(s=>s.day===day).sort((a,b)=>(a.order||0)-(b.order||0));
     if(ds.length<2)return;
-    const pts=ds.map(s=>project(s.lat,s.lng));
-    svg+=`<polyline points="${pts.map(p=>p.map(x=>x.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${DAY_COLORS[day]}" stroke-width="2" stroke-dasharray="5,4" opacity=".5"/>`;
+    svg+=`<path d="M ${ds.map(s=>`${px(s.lng).toFixed(1)} ${py(s.lat).toFixed(1)}`).join(' L ')}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>`;
+    svg+=`<path d="M ${ds.map(s=>`${px(s.lng).toFixed(1)} ${py(s.lat).toFixed(1)}`).join(' L ')}" fill="none" stroke="${DAY_COLORS[day]}" stroke-width="2.4" stroke-dasharray="1 8" stroke-linecap="round" stroke-linejoin="round"/>`;
   });
-  // 景点标记
-  spots.forEach(s=>{
-    const[x,y]=project(s.lat,s.lng);
+  // 景点标记 + 名字标签
+  spots.forEach((s,idx)=>{
+    const x=px(s.lng),y=py(s.lat);
     const c=s.day===0?'#94a3b8':DAY_COLORS[s.day];
-    svg+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" fill="${c}" stroke="#fff" stroke-width="2.5"/>`;
-    svg+=`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" font-size="11">${s.emoji||'📍'}</text>`;
+    // 大头针：外圈白 + 内圈彩色 + emoji
+    svg+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="16" fill="#fff" filter="url(#mmsh)"/>`;
+    svg+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="13" fill="${c}"/>`;
+    svg+=`<text x="${x.toFixed(1)}" y="${(y+5).toFixed(1)}" text-anchor="middle" font-size="13">${s.emoji||'📍'}</text>`;
+    // 名字标签（白色描边文字，放点上方）
+    const labelY=y-21;
+    svg+=`<text x="${x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" fill="#1e293b" stroke="#fff" stroke-width="3" paint-order="stroke" style="paint-order:stroke">${escapeHtml(s.name)}</text>`;
   });
-  // 图例
-  let ly=H-14;
+  // 图例（底部胶囊）
+  const legCenter=W/2;
+  const legW=130;
+  svg+=`<rect x="${legCenter-legW}" y="${H-b+6}" width="${legW*2}" height="22" rx="11" fill="#fff" opacity=".9"/>`;
   [1,2,3].forEach((d,i)=>{
-    svg+=`<circle cx="${20+i*80}" cy="${ly}" r="5" fill="${DAY_COLORS[d]}"/><text x="${30+i*80}" y="${ly+4}" font-size="10" fill="#475569">Day${d}</text>`;
+    const lx=legCenter-legW+16+i*((legW*2-32)/3);
+    svg+=`<circle cx="${lx}" cy="${H-b+17}" r="6" fill="${DAY_COLORS[d]}" stroke="#fff" stroke-width="1.5"/>`;
+    svg+=`<text x="${lx+10}" y="${H-b+21}" font-size="11" fill="#475569">Day${d}</text>`;
   });
   svg+=`</svg></div>`;
   return svg;
