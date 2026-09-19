@@ -477,8 +477,8 @@
       </div>
       <div class="field"><label>时间段</label>
         <div class="time-selector" id="timeSelector">
-          <div class="time-opt" data-time="morning">🌅 早上</div>
-          <div class="time-opt active" data-time="noon">☀️ 中午</div>
+          <div class="time-opt" data-time="morning">🌅 上午</div>
+          <div class="time-opt active" data-time="noon">☀️ 下午</div>
           <div class="time-opt" data-time="evening">🌙 晚上</div>
         </div>
       </div>
@@ -562,7 +562,7 @@ const DAYS = [
   {day:3,label:'Day 3',date:'9.27',color:'#f59e0b',light:'#fcd34d'},
 ];
 const dayInfo = d => DAYS.find(x=>x.day===d)||DAYS[0];
-const TIME_LABELS = {morning:'🌅 早上',noon:'☀️ 中午',evening:'🌙 晚上'};
+const TIME_LABELS = {morning:'🌅 上午',noon:'☀️ 下午',evening:'🌙 晚上'};
 const TIME_ORDER = {morning:0,noon:1,evening:2};
 
 const TRIP_DATES = ['2026-09-25','2026-09-26','2026-09-27'];
@@ -1089,7 +1089,7 @@ function renderWx(n,w){const i=wmoInfo(w.code);document.getElementById('wxIcon'+
 
 /* ==================== 导出旅游攻略 ==================== */
 const DAY_COLORS={1:'#0ea5e9',2:'#ec4899',3:'#f59e0b'};
-const TP_LABEL={morning:'🌅 早上',noon:'☀️ 中午',evening:'🌙 晚上'};
+const TP_LABEL={morning:'🌅 上午',noon:'☀️ 下午',evening:'🌙 晚上'};
 function buildGuideHTML(){
   const spots=loadSpots();
   const foods=getFoods();
