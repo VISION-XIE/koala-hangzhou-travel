@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
+  <title id="title">旅行考拉插画</title>
+  <desc id="desc">带着地图和旅行包的蓝色系考拉</desc>
+  <defs>
+    <linearGradient id="fur" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b8cada"/>
+      <stop offset="1" stop-color="#7892aa"/>
+    </linearGradient>
+    <linearGradient id="scarf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#0f2747" flood-opacity=".16"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)" stroke="#17324f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ears and head -->
+    <circle cx="92" cy="95" r="38" fill="#8fa7bb"/>
+    <circle cx="228" cy="95" r="38" fill="#8fa7bb"/>
+    <circle cx="92" cy="95" r="20" fill="#d8e5ee" stroke-width="5"/>
+    <circle cx="228" cy="95" r="20" fill="#d8e5ee" stroke-width="5"/>
+    <path d="M64 132c0-48 39-79 96-79s96 31 96 79v31c0 57-39 90-96 90s-96-33-96-90z" fill="url(#fur)"/>
+    <path d="M91 140c13-25 37-37 69-37s56 12 69 37c-5 38-32 66-69 66s-64-28-69-66z" fill="#eef6fa" stroke-width="5"/>
+    <!-- face -->
+    <ellipse cx="125" cy="151" rx="10" ry="14" fill="#17324f" stroke="none"/>
+    <ellipse cx="195" cy="151" rx="10" ry="14" fill="#17324f" stroke="none"/>
+    <circle cx="122" cy="147" r="3" fill="#fff" stroke="none"/>
+    <circle cx="192" cy="147" r="3" fill="#fff" stroke="none"/>
+    <path d="M143 171c7-9 27-9 34 0-1 15-8 22-17 22s-16-7-17-22z" fill="#17324f" stroke-width="5"/>
+    <path d="M160 193v10m0 0c-8 7-17 7-24 1m24-1c8 7 17 7 24 1" fill="none" stroke-width="5"/>
+    <path d="M103 177c-7 5-10 12-10 19m114-19c7 5 10 12 10 19" fill="none" stroke="#6b8398" stroke-width="4"/>
+    <!-- body -->
+    <path d="M93 219c-12 15-19 34-18 57 2 32 32 43 85 43s83-11 85-43c1-23-6-42-18-57-17 16-39 24-67 24s-50-8-67-24z" fill="url(#fur)"/>
+    <ellipse cx="160" cy="263" rx="48" ry="42" fill="#eef6fa" stroke-width="5"/>
+    <!-- scarf -->
+    <path d="M89 218c24 20 47 28 71 28s47-8 71-28l-8 34c-22 15-43 21-63 21s-41-6-63-21z" fill="url(#scarf)"/>
+    <path d="M195 248l25 38-25 8-14-43z" fill="#1d4ed8"/>
+    <!-- arms, bag, map -->
+    <path d="M89 239c-18 5-31 17-37 35" fill="none" stroke-width="17"/>
+    <path d="M231 239c18 5 31 17 37 35" fill="none" stroke-width="17"/>
+    <path d="M45 278c-8 5-12 12-8 18 4 7 14 6 21-1" fill="#8fa7bb"/>
+    <path d="M275 278c8 5 12 12 8 18-4 7-14 6-21-1" fill="#8fa7bb"/>
+    <path d="M37 226l58 16-13 50-58-16z" fill="#fff"/>
+    <path d="M42 240l45 12m-39-2 33 9m-39 1 29 8" fill="none" stroke="#60a5fa" stroke-width="4"/>
+    <path d="M47 226l11-17 25 7-10 18" fill="none" stroke="#60a5fa" stroke-width="5"/>
+    <path d="M241 236h37c11 0 18 9 18 20v35h-55z" fill="#2563eb"/>
+    <path d="M249 236c0-17 9-25 21-25s21 8 21 25" fill="none" stroke="#17324f" stroke-width="7"/>
+    <path d="M251 262h35m-35 13h22" fill="none" stroke="#bfdbfe" stroke-width="5"/>
+    <!-- feet -->
+    <ellipse cx="111" cy="300" rx="28" ry="12" fill="#7892aa"/>
+    <ellipse cx="209" cy="300" rx="28" ry="12" fill="#7892aa"/>
+  </g>
+  <g fill="none" stroke="#60a5fa" stroke-width="4" stroke-linecap="round" opacity=".85">
+    <path d="M54 91l7-5m-17 20 8-2m220-20-7-5m17 20-8-2"/>
+    <path d="M25 168l9-3m-9 14 9 1m261-12-9-3m9 14-9 1"/>
+  </g>
+</svg>

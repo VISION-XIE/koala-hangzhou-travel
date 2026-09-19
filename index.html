@@ -3,24 +3,25 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Koala杭州漫游地图 · 软萌攻略</title>
+<title>Koala杭州漫游地图 · 行程攻略</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230ea5e9'/%3E%3Ccircle cx='22' cy='27' r='11' fill='%23fff'/%3E%3Ccircle cx='42' cy='27' r='11' fill='%23fff'/%3E%3Ccircle cx='22' cy='27' r='5' fill='%23334155'/%3E%3Ccircle cx='42' cy='27' r='5' fill='%23334155'/%3E%3Cellipse cx='32' cy='40' rx='13' ry='10' fill='%23e2e8f0'/%3E%3Cellipse cx='32' cy='38' rx='5' ry='4' fill='%23334155'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="vendor/leaflet.css" />
 <script src="vendor/marked.min.js"></script>
 <style>
   :root {
     --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd; --sky-300:#7dd3fc;
     --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
-    --pink-200:#fbcfe8; --pink-300:#f9a8d4; --pink-400:#f472b6; --pink-500:#ec4899;
-    --mint-200:#bbf7d0; --mint-300:#6ee7b7;
-    --amber-300:#fcd34d; --amber-500:#f59e0b;
-    --text:#334155; --muted:#64748b;
+    --pink-200:#c7d2fe; --pink-300:#93c5fd; --pink-400:#60a5fa; --pink-500:#3b82f6;
+    --mint-200:#bae6fd; --mint-300:#7dd3fc;
+    --amber-300:#a5f3fc; --amber-500:#06b6d4;
+    --text:#17324f; --muted:#5f7690;
     --radius:24px; --radius-sm:14px;
     --shadow-soft:0 10px 30px -8px rgba(14,165,233,.25);
     --shadow-pop:0 18px 40px -12px rgba(14,165,233,.45);
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%;font-family:"Quicksand","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--text);
-    background:radial-gradient(1200px 600px at 15% -10%,#e0f2fe 0%,transparent 60%),radial-gradient(1000px 500px at 110% 10%,#fbcfe8 0%,transparent 55%),linear-gradient(160deg,var(--sky-50) 0%,var(--sky-100) 50%,#f0fdfa 100%);overflow:hidden}
+  html,body{margin:0;padding:0;min-height:100%;font-family:"Quicksand","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--text);
+    background:radial-gradient(1100px 600px at 8% -12%,#d7f0ff 0%,transparent 62%),radial-gradient(900px 520px at 112% 6%,#dbeafe 0%,transparent 58%),linear-gradient(160deg,#f5fbff 0%,var(--sky-100) 53%,#eff6ff 100%);overflow-x:hidden;overflow-y:auto}
   .font-cute{font-family:"ZCOOL KuaiLe","PingFang SC",sans-serif}
 
   /* 背景云朵 */
@@ -31,16 +32,16 @@
   .cloud.c2{top:14%;width:90px;height:45px;animation-duration:70s;animation-delay:-20s;opacity:.7}
   .cloud.c3{bottom:8%;width:110px;height:55px;animation-duration:80s;animation-delay:-40s;opacity:.6}
 
-  .app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:14px 18px 16px;gap:10px}
+  .app{position:relative;z-index:1;height:100dvh;min-height:100dvh;display:flex;flex-direction:column;padding:14px 18px 16px;gap:10px}
 
   /* 顶栏 */
   header.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;animation:fadeDown .7s cubic-bezier(.2,.8,.2,1) both}
   @keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
   .brand{display:flex;align-items:center;gap:12px}
-  .brand-logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--sky-300),var(--sky-500));display:grid;place-items:center;box-shadow:0 8px 20px -6px rgba(14,165,233,.5);flex-shrink:0;position:relative}
-  .brand-logo .koala{position:absolute;font-size:20px;animation:koalaBounce 2.5s ease-in-out infinite}
+  .brand-logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#dff4ff,#72c8f5);display:grid;place-items:center;box-shadow:0 8px 20px -6px rgba(14,165,233,.5);flex-shrink:0;position:relative;overflow:hidden}
+  .brand-logo img{width:54px;height:54px;object-fit:contain;animation:koalaBounce 2.5s ease-in-out infinite}
   @keyframes koalaBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-  .brand h1{margin:0;font-size:24px;letter-spacing:1px;color:var(--sky-600);text-shadow:0 2px 0 rgba(255,255,255,.6)}
+  .brand h1{margin:0;font-size:24px;letter-spacing:1px;color:#075985;text-shadow:0 2px 0 rgba(255,255,255,.75)}
   .brand .sub{margin:2px 0 0;font-size:12px;color:var(--muted);font-weight:500}
   .top-actions{display:flex;gap:8px;align-items:center}
   .btn{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-radius:999px;padding:9px 16px;font-size:13px;display:inline-flex;align-items:center;gap:7px;transition:transform .18s,box-shadow .18s;background:linear-gradient(135deg,var(--sky-400),var(--sky-600));color:#fff;box-shadow:0 8px 18px -8px rgba(14,165,233,.6)}
@@ -110,7 +111,7 @@
   .search-result:hover{background:var(--sky-50)}
   .search-result .sr-name{font-size:13px;font-weight:600}
   .search-result .sr-addr{font-size:11px;color:var(--muted);margin-top:2px}
-  .hint-banner{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border:2px solid var(--pink-200);color:var(--text);padding:8px 16px;border-radius:999px;font-size:12px;font-weight:600;box-shadow:0 10px 24px -10px rgba(244,114,182,.5);z-index:500;display:none;align-items:center;gap:6px;animation:hintPop .4s cubic-bezier(.2,.8,.2,1)}
+  .hint-banner{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border:2px solid var(--pink-200);color:var(--text);padding:8px 16px;border-radius:999px;font-size:12px;font-weight:600;box-shadow:0 10px 24px -10px rgba(37,99,235,.3);z-index:500;display:none;align-items:center;gap:6px;animation:hintPop .4s cubic-bezier(.2,.8,.2,1)}
   .hint-banner.show{display:flex}
   @keyframes hintPop{from{opacity:0;transform:translate(-50%,-10px) scale(.95)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
 
@@ -249,7 +250,7 @@
   .food-tag{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600}
   .food-tag.queue{background:#fef3c7;color:#b45309}
   .food-tag.price{background:var(--sky-100);color:var(--sky-600)}
-  .add-mini{background:linear-gradient(135deg,var(--pink-300),var(--pink-500));color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 6px 14px -6px rgba(236,72,153,.5);margin-bottom:10px}
+  .add-mini{background:linear-gradient(135deg,var(--pink-300),var(--pink-500));color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 6px 14px -6px rgba(37,99,235,.38);margin-bottom:10px}
   .add-mini:hover{transform:translateY(-1px)}
 
   /* 心愿 */
@@ -335,6 +336,67 @@
   }
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
 
+  /* ===== 蓝色考拉视觉与 H5 适配 ===== */
+  .map-mascot{position:absolute;right:18px;bottom:18px;width:104px;z-index:450;pointer-events:none;opacity:.94;filter:drop-shadow(0 10px 14px rgba(15,39,71,.2));transform:rotate(4deg);transition:transform .25s ease}
+  .map-wrap:hover .map-mascot{transform:rotate(0deg) translateY(-4px)}
+  .map-mascot img{display:block;width:100%;height:auto}
+  .empty-card{display:flex;flex-direction:column;align-items:center}
+  .empty-card .empty-illustration{width:116px;height:116px;object-fit:contain;margin:-8px auto 4px;filter:drop-shadow(0 8px 10px rgba(15,39,71,.14))}
+  .panel-mascot{display:flex;align-items:center;gap:8px;margin:0 12px;padding:7px 10px;border-radius:14px;background:linear-gradient(100deg,#eef9ff,#dceeff);color:#2563a6;font-size:11px;font-weight:700;flex-shrink:0}
+  .panel-mascot img{width:42px;height:42px;object-fit:contain;align-self:flex-end;margin-top:-8px;margin-bottom:-6px}
+  .panel-mascot span{letter-spacing:.2px}
+  .leaflet-popup-content-wrapper{border-color:#e0f2fe!important}
+  .leaflet-popup-tip{background:#e0f2fe!important}
+  .btn,.day-pill,.panel-tab,.add-mini,.time-opt,.day-opt{min-height:40px}
+
+  /* 主界面在手机端变成连续可滚动的地图 + 面板 */
+  @media(max-width:900px){
+    html,body{overflow-y:auto}
+    .app{height:auto;min-height:100dvh}
+    .main{flex:none;flex-direction:column}
+    .map-wrap{height:min(62dvh,560px);min-height:390px;flex:none}
+    .side-panel{width:100%;max-height:none;min-height:390px;overflow:visible}
+    .panel-body{overflow:visible}
+    .weather-strip{overflow-x:auto;padding-bottom:2px;scroll-snap-type:x proximity}
+    .weather-card{flex:0 0 min(280px,42vw);scroll-snap-align:start}
+  }
+  @media(max-width:640px){
+    .app{padding:calc(10px + env(safe-area-inset-top)) 10px calc(18px + env(safe-area-inset-bottom));gap:9px}
+    header.topbar{align-items:flex-start;gap:8px}
+    .brand{gap:9px;min-width:0}
+    .brand-logo{width:42px;height:42px;border-radius:13px}
+    .brand-logo img{width:49px;height:49px}
+    .brand h1{font-size:18px;letter-spacing:.3px;white-space:nowrap}
+    .brand .sub{display:block;font-size:10px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+    .top-actions{gap:5px;flex-wrap:wrap;justify-content:flex-end}
+    .top-actions .btn{padding:7px 9px;font-size:11px;min-height:38px;gap:4px}
+    .top-actions .btn svg{width:13px;height:13px}
+    .top-actions #resetBtn{display:none}
+    .day-filter{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:1px 1px 3px}
+    .day-filter::-webkit-scrollbar{display:none}
+    .day-pill{flex:0 0 auto;padding:5px 10px;font-size:11px;min-height:34px}
+    .weather-strip{gap:8px}
+    .weather-card{flex:0 0 78%;padding:8px 10px}
+    .weather-card .wx-desc,.weather-card .wx-rain{display:block}
+    .map-wrap{height:56dvh;min-height:360px;border-width:3px;border-radius:20px}
+    .map-mascot{width:78px;right:10px;bottom:12px}
+    .search-panel{top:10px;width:calc(100% - 18px)}
+    .hint-banner{max-width:calc(100% - 30px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:7px 11px;font-size:11px}
+    .leaflet-control-zoom{margin-bottom:6px!important}
+    .panel-mascot{margin:0 9px;padding:5px 9px}
+    .panel-mascot img{width:36px;height:36px}
+    .panel-tabs{position:sticky;top:0;z-index:4;padding:7px 5px 0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}
+    .panel-tab{font-size:11px;min-height:48px}
+    .panel-tab .tab-emoji{font-size:15px}
+    .panel-body{padding:12px 10px 18px}
+    .modal-backdrop{padding:0;align-items:flex-end}
+    .modal-backdrop .modal,.modal-backdrop .modal-card{width:100%;max-width:none!important;max-height:92dvh;border-radius:22px 22px 0 0}
+    .modal-body{overflow-y:auto}
+    .modal-head{padding:14px 16px}
+    .modal-footer{padding:0 16px calc(16px + env(safe-area-inset-bottom))}
+    .field input,.field textarea,.field select,.search-box input{font-size:16px}
+  }
+
   /* ===== 导出攻略样式 ===== */
   .guide{font-family:'Quicksand','PingFang SC',sans-serif;background:#fff;color:#1e293b;max-width:760px;margin:0 auto;padding:40px 48px;line-height:1.7}
   .guide h1{font-family:'ZCOOL KuaiLe',sans-serif;font-size:34px;color:#0284c7;text-align:center;margin:0 0 4px}
@@ -356,6 +418,25 @@
   .guide .g-pill{display:inline-block;background:#e0f2fe;border-radius:20px;padding:2px 10px;font-size:12px;margin:2px;color:#0284c7}
   .guide .g-empty{color:#94a3b8;font-size:13px;font-style:italic}
   .guide .g-footer{text-align:center;margin-top:36px;padding-top:16px;border-top:1px dashed #cbd5e1;color:#94a3b8;font-size:12px}
+  .guide{width:100%;background:linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);border:1px solid #dbeafe;border-radius:26px;box-shadow:0 18px 45px rgba(15,39,71,.1);overflow:hidden}
+  .guide .g-cover{position:relative;overflow:hidden;background:linear-gradient(135deg,#e4f5ff 0%,#dbeafe 58%,#eff6ff 100%);border:1px solid #bfdbfe;padding:28px 24px 26px}
+  .guide .g-cover::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-66px;bottom:-74px;background:rgba(56,189,248,.22)}
+  .guide .g-cover .guide-mascot{position:relative;z-index:1;display:block;width:min(168px,48vw);height:auto;margin:0 auto 10px;filter:drop-shadow(0 12px 12px rgba(15,39,71,.14))}
+  .guide .g-cover h1{position:relative;z-index:1;margin-top:0;color:#075985}
+  .guide .g-sub{position:relative;z-index:1;color:#45627d}
+  .guide .g-day-title{width:100%;box-shadow:0 8px 18px rgba(15,39,71,.1)}
+  .guide .g-spot{border:1px solid #dbeafe;border-left:5px solid #38bdf8;background:#f8fbff;box-shadow:0 5px 12px rgba(15,39,71,.05)}
+  .guide .g-item{border:1px solid #dbeafe;background:#f8fbff}
+  .guide .g-footer{display:flex;align-items:center;justify-content:center;gap:8px;color:#54708a}
+  .guide .g-footer .footer-mascot{width:34px;height:34px;object-fit:contain}
+  @media(max-width:640px){
+    .guide{padding:22px 14px 28px;border-radius:20px}
+    .guide h1{font-size:28px;line-height:1.2}
+    .guide .g-sub{font-size:12px}
+    .guide .g-day-title{font-size:18px;padding:9px 12px}
+    .guide .g-spot{padding:12px 13px}
+    .guide .g-spot-name{font-size:15px}
+  }
 
   /* 打印 PDF：只显示攻略 */
   @media print{
@@ -376,8 +457,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-logo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="#fff" stroke="none"/></svg>
-        <span class="koala">🐨</span>
+        <img src="assets/koala-mascot.svg" alt="考拉" />
       </div>
       <div>
         <h1 class="font-cute">Koala杭州漫游地图</h1>
@@ -427,7 +507,8 @@
         <div class="search-results" id="searchResults"></div>
       </div>
       <div class="hint-banner" id="hintBanner"><span>✏️</span><span id="hintText">点击地图或搜索景点来添加标记～</span></div>
-      <div class="empty-state" id="emptyState"><div class="empty-card"><span class="big-emoji">🌸</span><div class="t font-cute">还没有景点哦</div><div class="s">点击「添加景点」开始吧</div></div></div>
+      <div class="map-mascot" aria-hidden="true"><img src="assets/koala-mascot.svg" alt="" /></div>
+      <div class="empty-state" id="emptyState"><div class="empty-card"><img class="empty-illustration" src="assets/koala-mascot.svg" alt="" /><div class="t font-cute">还没有景点</div><div class="s">点击「添加景点」开始规划</div></div></div>
     </div>
 
     <!-- 右侧面板 -->
@@ -438,6 +519,7 @@
         <button class="panel-tab" data-tab="wish"><span class="tab-emoji">💝</span>心愿</button>
         <button class="panel-tab" data-tab="pack"><span class="tab-emoji">🧳</span>行李</button>
       </div>
+      <div class="panel-mascot" aria-hidden="true"><img src="assets/koala-mascot.svg" alt="" /><span>把每一站都记下来</span></div>
       <div class="panel-body">
         <!-- 时间轴 -->
         <div class="panel-section active" id="sec-timeline"></div>
@@ -576,8 +658,8 @@ const MOODS = ['😋','🤤','🥰','😍','🤩','😌','😋','🤤','😻','�
 const DAYS = [
   {day:0,label:'未安排',date:'',color:'#94a3b8',light:'#cbd5e1'},
   {day:1,label:'Day 1',date:'9.25',color:'#0ea5e9',light:'#7dd3fc'},
-  {day:2,label:'Day 2',date:'9.26',color:'#ec4899',light:'#f9a8d4'},
-  {day:3,label:'Day 3',date:'9.27',color:'#f59e0b',light:'#fcd34d'},
+  {day:2,label:'Day 2',date:'9.26',color:'#3b82f6',light:'#93c5fd'},
+  {day:3,label:'Day 3',date:'9.27',color:'#06b6d4',light:'#a5f3fc'},
 ];
 const dayInfo = d => DAYS.find(x=>x.day===d)||DAYS[0];
 const TIME_LABELS = {morning:'🌅 上午',noon:'☀️ 下午',evening:'🌙 晚上'};
@@ -1119,7 +1201,7 @@ async function loadWeather(){
 function renderWx(n,w){const i=wmoInfo(w.code);document.getElementById('wxIcon'+n).innerHTML=weatherSvg(i.icon);document.getElementById('wxDesc'+n).textContent=i.desc;document.getElementById('wxTemp'+n).innerHTML=`${w.tmax}°/<span class="lo">${w.tmin}°</span>`;document.getElementById('wxRain'+n).textContent=`💧${w.precip}%`}
 
 /* ==================== 导出旅游攻略 ==================== */
-const DAY_COLORS={1:'#0ea5e9',2:'#ec4899',3:'#f59e0b'};
+const DAY_COLORS={1:'#0ea5e9',2:'#3b82f6',3:'#06b6d4'};
 const TP_LABEL={morning:'🌅 上午',noon:'☀️ 下午',evening:'🌙 晚上'};
 function buildMiniMap(spots){
   if(!spots||!spots.length)return '';
@@ -1184,7 +1266,7 @@ function buildGuideHTML(){
   const wishes=getWishes();
   const packing=getPacking();
   let h=`<div class="guide">`;
-  h+=`<div class="g-cover"><div class="koala">🐨</div><h1>Koala 杭州漫游攻略</h1><div class="g-sub">9.25 - 9.27 · 杭州 · 软萌版旅行手账</div></div>`;
+  h+=`<div class="g-cover"><img class="guide-mascot" src="assets/koala-mascot.svg" alt="考拉旅行插画"><h1>Koala 杭州漫游攻略</h1><div class="g-sub">9.25 - 9.27 · 杭州 · 蓝色旅行手账</div></div>`;
   // 迷你地图
   h+=buildMiniMap(spots);
   // 每日行程
@@ -1223,7 +1305,7 @@ function buildGuideHTML(){
   // 行李
   const checked=packing.filter(p=>p.checked);
   if(checked.length){h+=`<div class="g-section"><h2>🧳 行李清单（已勾 ${checked.length} 件）</h2>`;const cats=[...new Set(checked.map(p=>p.cat))];cats.forEach(c=>{const items=checked.filter(p=>p.cat===c);h+=`<div style="margin:6px 0"><strong style="color:#0284c7">${c}</strong>：${items.map(i=>escapeHtml(i.text)).join('、')}</div>`});h+=`</div>`}
-  h+=`<div class="g-footer">🐨 Koala 杭州漫游地图 · 生成于 ${new Date().toLocaleDateString('zh-CN')}</div>`;
+  h+=`<div class="g-footer"><img class="footer-mascot" src="assets/koala-mascot.svg" alt="">Koala 杭州漫游地图 · 生成于 ${new Date().toLocaleDateString('zh-CN')}</div>`;
   h+=`</div>`;
   return h;
 }
