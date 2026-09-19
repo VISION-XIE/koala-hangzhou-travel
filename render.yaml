@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: koala-hangzhou
+    env: node
+    repo: https://github.com/VISION-XIE/koala-hangzhou-travel
+    branch: main
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: AMAP_KEY
+        value: 0fc7e137dda9667f43d6540cbb0a10e4
+      - key: GIST_TOKEN
+        sync: false
