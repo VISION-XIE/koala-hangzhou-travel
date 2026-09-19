@@ -1110,12 +1110,15 @@ function weatherSvg(type){
     default:return`<svg viewBox="0 0 64 64" width="40" height="40"><circle cx="32" cy="32" r="14" fill="#cbd5e1"/></svg>`;
   }
 }
-const FALLBACK=[{code:2,tmax:27,tmin:20,precip:30},{code:61,tmax:25,tmin:19,precip:60},{code:1,tmax:28,tmin:21,precip:20}];
 async function loadWeather(){
-  try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${HANGZHOU_CENTER[0]}&longitude=${HANGZHOU_CENTER[1]}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia/Shanghai&forecast_days=16`);
-  const d=await r.json();const daily=d?.daily;if(!daily)throw 0;
-  TRIP_DATES.forEach((ds,i)=>{const idx=daily.time.indexOf(ds);const w=idx>=0?{code:daily.weather_code[idx],tmax:Math.round(daily.temperature_2m_max[idx]),tmin:Math.round(daily.temperature_2m_min[idx]),precip:daily.precipitation_probability_max[idx]??0}:FALLBACK[i];renderWx(i+1,w)})}
-  catch(e){TRIP_DATES.forEach((_,i)=>renderWx(i+1,FALLBACK[i]))}
+  const failText='天气暂不可用';
+  const renderFail=n=>{document.getElementById('wxIcon'+n).innerHTML='';document.getElementById('wxDesc'+n).textContent=failText;document.getElementById('wxTemp'+n).textContent='--°';document.getElementById('wxRain'+n).textContent=''};
+  try{
+    const r=await fetch('/api/weather');
+    const d=await r.json();
+    if(!d||!Array.isArray(d.days))throw 0;
+    d.days.forEach((w,i)=>{w?renderWx(i+1,w):renderFail(i+1)});
+  }catch(e){[1,2,3].forEach(renderFail)}
 }
 function renderWx(n,w){const i=wmoInfo(w.code);document.getElementById('wxIcon'+n).innerHTML=weatherSvg(i.icon);document.getElementById('wxDesc'+n).textContent=i.desc;document.getElementById('wxTemp'+n).innerHTML=`${w.tmax}°/<span class="lo">${w.tmin}°</span>`;document.getElementById('wxRain'+n).textContent=`💧${w.precip}%`}
 
