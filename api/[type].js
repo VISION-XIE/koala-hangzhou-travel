@@ -2,21 +2,33 @@ const GIST_ID = '8798ad5ce5d2e2c6a4c40e7e70f877b5';
 const GIST_TOKEN = process.env.GIST_TOKEN || '';
 
 async function loadGist() {
-  const headers = GIST_TOKEN ? { Authorization: `Bearer ${GIST_TOKEN}` } : {};
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers });
-  if (!r.ok) throw new Error(`Gist read failed: ${r.status}`);
-  const g = await r.json();
-  const content = g.files?.['data.json']?.content;
-  return content ? JSON.parse(content) : { spots: [], foods: [], wishes: [], packing: [] };
+  // 尝试用 token 读，401 则降级为无认证读（public Gist）
+  for (const headers of [
+    GIST_TOKEN ? { Authorization: `Bearer ${GIST_TOKEN}` } : null,
+    {} // 无认证兜底
+  ].filter(Boolean)) {
+    try {
+      const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers });
+      if (!r.ok) continue;
+      const g = await r.json();
+      const content = g.files?.['data.json']?.content;
+      return content ? JSON.parse(content) : { spots: [], foods: [], wishes: [], packing: [] };
+    } catch (e) { /* try next */ }
+  }
+  return { spots: [], foods: [], wishes: [], packing: [] };
 }
 
 async function saveGist(data) {
+  if (!GIST_TOKEN) throw new Error('GIST_TOKEN not set');
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${GIST_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ files: { 'data.json': { content: JSON.stringify(data, null, 2) } } })
   });
-  if (!r.ok) throw new Error(`Gist write failed: ${r.status}`);
+  if (!r.ok) {
+    const body = await r.text();
+    throw new Error(`Gist write failed: ${r.status} ${body.substring(0, 100)}`);
+  }
 }
 
 function parseBody(req) {
