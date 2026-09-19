@@ -552,25 +552,30 @@ const PACK_CATS = [];
 
 /* ==================== 存储（服务端共享） ==================== */
 // 本地缓存，启动时从服务端拉取，修改后同步回服务端
-const _cache = { spots: null, foods: null, wishes: null, packing: null };
+const _cache = { spots: [], foods: [], wishes: [], packing: [] };
 async function initCache() {
   await Promise.all(['spots','foods','wishes','packing'].map(async t => {
     try {
       const r = await fetch('/api/'+t);
-      _cache[t] = await r.json();
-    } catch(e) { _cache[t] = []; }
+      if (!r.ok) { console.error(t, 'API error', r.status); return; }
+      const data = await r.json();
+      if (Array.isArray(data)) _cache[t] = data;
+      else { console.error(t, 'not array:', data); }
+    } catch(e) { console.error(t, 'fetch failed:', e); }
   }));
 }
 function syncToServer(type) {
-  fetch('/api/'+type, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(_cache[type])}).catch(()=>{});
+  fetch('/api/'+type, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(_cache[type])})
+    .then(r => { if (!r.ok) console.error('sync failed:', type, r.status); })
+    .catch(e => console.error('sync error:', type, e));
 }
-function loadSpots(){return (_cache.spots||[]).map(s=>({timePeriod:'noon',checked:false,duration:0,order:0,transport:'',...s}))}
+function loadSpots(){return (Array.isArray(_cache.spots)?_cache.spots:[]).map(s=>({timePeriod:'noon',checked:false,duration:0,order:0,transport:'',...s}))}
 function saveSpots(s){_cache.spots=s;syncToServer('spots')}
-function getFoods(){return _cache.foods||[]}
+function getFoods(){return Array.isArray(_cache.foods)?_cache.foods:[]}
 function saveFoods(f){_cache.foods=f;syncToServer('foods')}
-function getWishes(){return _cache.wishes||[]}
+function getWishes(){return Array.isArray(_cache.wishes)?_cache.wishes:[]}
 function saveWishes(w){_cache.wishes=w;syncToServer('wishes')}
-function getPacking(){return _cache.packing||[]}
+function getPacking(){return Array.isArray(_cache.packing)?_cache.packing:[]}
 function savePacking(p){_cache.packing=p;syncToServer('packing')}
 
 /* ==================== 地图 ==================== */
