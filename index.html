@@ -217,6 +217,19 @@
   .ti-check.checked{background:linear-gradient(135deg,var(--mint-300),#34d399);border-color:#34d399;color:#fff}
   .ti-check.checked::after{content:"✓"}
   .ti-check.pop{animation:checkPop .5s cubic-bezier(.34,1.56,.64,1)}
+  .ti-del{flex-shrink:0;width:22px;height:22px;border-radius:50%;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;opacity:0;transition:all .15s;align-self:flex-start;margin-top:1px}
+  .timeline-item:hover .ti-del{opacity:.6}
+  .ti-del:hover{opacity:1!important;background:#fee2e2;color:#ef4444}
+  /* 确认弹窗 */
+  .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10000;display:flex;align-items:center;justify-content:center;animation:lbIn .15s ease}
+  .confirm-box{background:#fff;border-radius:16px;padding:24px 28px;max-width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.15);animation:lbScale .2s ease}
+  .confirm-box .msg{font-size:15px;color:var(--sky-700);margin-bottom:18px;line-height:1.5}
+  .confirm-box .btns{display:flex;gap:10px;justify-content:center}
+  .confirm-box .btns button{padding:8px 22px;border-radius:10px;font-size:14px;border:none;cursor:pointer;transition:all .15s}
+  .confirm-box .btn-cancel{background:var(--sky-100);color:var(--sky-600)}
+  .confirm-box .btn-cancel:hover{background:var(--sky-200)}
+  .confirm-box .btn-ok{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff}
+  .confirm-box .btn-ok:hover{opacity:.9}
   @keyframes checkPop{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1)}}
   .ti-info{flex:1;min-width:0}
   .ti-name{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px}
@@ -641,11 +654,11 @@ function makeIcon(emoji,day,checked){
   const info=dayInfo(day);
   const op=checked?.5:1;
   return L.divIcon({html:`<div class="cute-marker ${checked?'checked-marker':''}">
-    <svg viewBox="0 0 38 46" width="36" height="44" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 38 46" width="44" height="54" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 1C9.6 1 2 8.6 2 18c0 10.5 12.5 22.3 15.4 25.2a2 2 0 0 0 3.2 0C23.5 40.3 36 28.5 36 18 36 8.6 28.4 1 19 1z" fill="${info.color}" stroke="#fff" stroke-width="2" opacity="${op}"/>
       <circle cx="19" cy="16" r="11" fill="#fff" opacity="${op}"/>
       <text x="19" y="21" text-anchor="middle" font-size="14">${emoji}</text>
-    </svg></div>`,className:'cute-marker-wrap',iconSize:[36,44],iconAnchor:[18,44],popupAnchor:[0,-40]});
+    </svg></div>`,className:'cute-marker-wrap',iconSize:[44,54],iconAnchor:[22,54],popupAnchor:[0,-50]});
 }
 
 function popupHtml(spot){
@@ -662,6 +675,14 @@ function popupHtml(spot){
     <div class="popup-actions"><button class="btn ghost" data-act="edit" data-id="${spot.id}">编辑</button><button class="btn danger" data-act="del" data-id="${spot.id}">删除</button></div>`;
 }
 function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showConfirm(msg,onOk){
+  const ov=document.createElement('div');ov.className='confirm-overlay';
+  ov.innerHTML=`<div class="confirm-box"><div class="msg">${escapeHtml(msg)}</div><div class="btns"><button class="btn-cancel">取消</button><button class="btn-ok">确定</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('.btn-cancel').onclick=()=>ov.remove();
+  ov.onclick=e=>{if(e.target===ov)ov.remove()};
+  ov.querySelector('.btn-ok').onclick=()=>{ov.remove();onOk()};
+}
 function renderMarkdown(text){
   if(!text||!text.trim())return '';
   try{const html=marked.parse(text,{breaks:true});return `<div class="md-content">${html}</div>`}catch(e){return escapeHtml(text)}
@@ -791,7 +812,7 @@ function addMarkerToMap(spot){
     wrap.addEventListener('mouseleave',()=>schedulePopupClose(m));
     const w=wrap.querySelector('.leaflet-popup-content');if(!w)return;
     w.querySelectorAll('.ti-check').forEach(c=>c.addEventListener('click',e=>{e.stopPropagation();toggleCheck(c.dataset.id)}));
-    w.querySelectorAll('button[data-act]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.act,id=b.dataset.id;if(a==='edit')openEditModal(id);else if(a==='del')deleteSpot(id)}));
+    w.querySelectorAll('button[data-act]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.act,id=b.dataset.id;if(a==='edit')openEditModal(id);else if(a==='del')showConfirm('确定删除这个景点？',()=>deleteSpot(id))}));
   });
   markers[spot.id]=m;
 }
@@ -926,7 +947,7 @@ document.getElementById('saveBtn').onclick=()=>{
   saveSpots(spots);renderAll();closeModal();
 };
 function deleteSpot(id){map.closePopup();saveSpots(loadSpots().filter(s=>s.id!==id));renderAll()}
-document.getElementById('resetBtn').onclick=()=>{if(confirm('确定清空所有景点？')){saveSpots([]);renderAll()}};
+document.getElementById('resetBtn').onclick=()=>{showConfirm('确定清空所有景点？此操作不可撤销',()=>{saveSpots([]);renderAll()})};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalBackdrop.classList.contains('show'))closeModal();else if(document.getElementById('foodModal').classList.contains('show'))closeFoodModal();else if(addMode)setAddMode(false)}});
 
 /* ==================== 时间轴面板 ==================== */
@@ -952,7 +973,8 @@ function renderTimeline(){
           <div class="ti-check ${s.checked?'checked':''}" data-id="${s.id}"></div>
           <div class="ti-info"><div class="ti-name">${s.emoji} ${escapeHtml(s.name)}${unassignedTag}</div>
           <div class="ti-meta">${s.duration?`<span class="dur">⏱ ${s.duration}分钟</span>`:''}${s.transport?`<span class="trans">🚇 ${escapeHtml(s.transport)}</span>`:''}</div>
-          ${s.notes?`<div class="tl-spot-notes">${renderMarkdown(s.notes)}</div>`:''}</div></div>`;
+          ${s.notes?`<div class="tl-spot-notes">${renderMarkdown(s.notes)}</div>`:''}</div>
+          <button class="ti-del" data-id="${s.id}" title="删除">✕</button></div>`;
       });
       html+=`</div>`;
     });
@@ -961,7 +983,8 @@ function renderTimeline(){
   if(!html)html='<div style="text-align:center;color:var(--muted);padding:30px 0;font-size:13px">还没有安排行程～<br>去地图上添加景点吧 ✨</div>';
   sec.innerHTML=html;
   sec.querySelectorAll('.ti-check').forEach(c=>c.addEventListener('click',e=>{e.stopPropagation();toggleCheck(c.dataset.id)}));
-  sec.querySelectorAll('.timeline-item').forEach(it=>it.addEventListener('click',e=>{if(e.target.classList.contains('ti-check'))return;const id=it.dataset.id;const s=loadSpots().find(x=>x.id===id);if(s&&markers[id])markers[id].openPopup()}));
+  sec.querySelectorAll('.ti-del').forEach(d=>d.addEventListener('click',e=>{e.stopPropagation();showConfirm('确定删除这个景点？',()=>{const spots=loadSpots();const i=spots.findIndex(s=>s.id===d.dataset.id);if(i>=0){spots.splice(i,1);saveSpots(spots);renderAll()}})}));
+  sec.querySelectorAll('.timeline-item').forEach(it=>it.addEventListener('click',e=>{if(e.target.classList.contains('ti-check')||e.target.classList.contains('ti-del')||e.target.closest('.ti-del'))return;const id=it.dataset.id;const s=loadSpots().find(x=>x.id===id);if(s){map.flyTo([s.lat,s.lng],15,{duration:.6});setTimeout(()=>{if(markers[id])markers[id].openPopup()},650)}}));
 }
 
 /* ==================== 面板 Tab ==================== */
@@ -1099,6 +1122,44 @@ function renderWx(n,w){const i=wmoInfo(w.code);document.getElementById('wxIcon'+
 /* ==================== 导出旅游攻略 ==================== */
 const DAY_COLORS={1:'#0ea5e9',2:'#ec4899',3:'#f59e0b'};
 const TP_LABEL={morning:'🌅 上午',noon:'☀️ 下午',evening:'🌙 晚上'};
+function buildMiniMap(spots){
+  if(!spots||!spots.length)return '';
+  const pad=40;const W=520,H=320;
+  const lats=spots.map(s=>s.lat),lngs=spots.map(s=>s.lng);
+  let minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
+  let minLat=Math.min(...lats),maxLat=Math.max(...lats);
+  const dLng=Math.max(maxLng-minLng,0.01),dLat=Math.max(maxLat-minLat,0.01);
+  // 保持比例
+  const scale=Math.min((W-pad*2)/dLng,(H-pad*2)/dLat*0.8);
+  const ox=pad+(W-pad*2-dLng*scale)/2;
+  const oy=pad+(H-pad*2-dLat*scale*0.8)/2;
+  const project=(lat,lng)=>[ox+(lng-minLng)*scale,oy+H-pad*2-(lat-minLat)*scale*0.8];
+  let svg=`<div style="text-align:center;margin:12px 0 16px"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="max-width:100%;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08)">`;
+  svg+=`<rect width="${W}" height="${H}" fill="#e0f2fe" rx="14"/>`;
+  // 装饰：西湖大致位置
+  svg+=`<ellipse cx="${(W/2).toFixed(0)}" cy="${(H/2+10).toFixed(0)}" rx="30" ry="18" fill="#7dd3fc" opacity=".3"/>`;
+  // 路线连线（按天）
+  [1,2,3].forEach(day=>{
+    const ds=spots.filter(s=>s.day===day).sort((a,b)=>(a.order||0)-(b.order||0));
+    if(ds.length<2)return;
+    const pts=ds.map(s=>project(s.lat,s.lng));
+    svg+=`<polyline points="${pts.map(p=>p.map(x=>x.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${DAY_COLORS[day]}" stroke-width="2" stroke-dasharray="5,4" opacity=".5"/>`;
+  });
+  // 景点标记
+  spots.forEach(s=>{
+    const[x,y]=project(s.lat,s.lng);
+    const c=s.day===0?'#94a3b8':DAY_COLORS[s.day];
+    svg+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" fill="${c}" stroke="#fff" stroke-width="2.5"/>`;
+    svg+=`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" font-size="11">${s.emoji||'📍'}</text>`;
+  });
+  // 图例
+  let ly=H-14;
+  [1,2,3].forEach((d,i)=>{
+    svg+=`<circle cx="${20+i*80}" cy="${ly}" r="5" fill="${DAY_COLORS[d]}"/><text x="${30+i*80}" y="${ly+4}" font-size="10" fill="#475569">Day${d}</text>`;
+  });
+  svg+=`</svg></div>`;
+  return svg;
+}
 function buildGuideHTML(){
   const spots=loadSpots();
   const foods=getFoods();
@@ -1106,6 +1167,8 @@ function buildGuideHTML(){
   const packing=getPacking();
   let h=`<div class="guide">`;
   h+=`<div class="g-cover"><div class="koala">🐨</div><h1>Koala 杭州漫游攻略</h1><div class="g-sub">9.25 - 9.27 · 杭州 · 软萌版旅行手账</div></div>`;
+  // 迷你地图
+  h+=buildMiniMap(spots);
   // 每日行程
   DAYS.filter(d=>d.day>0).forEach(d=>{
     const daySpots=spots.filter(s=>s.day===d.day||s.day===0).sort((a,b)=>(a.order||0)-(b.order||0));
